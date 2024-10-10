@@ -1,0 +1,48 @@
+
+
+<div class="container mt-5">
+    <!-- Chat Card -->
+    <div class="card mx-auto border-dark" style="max-width: 800px; height: 600px;">
+        <div class="card-header bg-dark d-flex justify-content-center align-items-center" style="color: #f6f8fa;">
+            <h5 class="mb-0"><b>Chat</b></h5>
+        </div>
+        <div class="card-body d-flex flex-column" style="height: 100%;">
+            <div class="container-fluid h-100">
+                <div class="row h-100">
+                    <!-- Chat window -->
+                    <div class="col chat-window d-flex flex-column h-100">
+                        <!-- Back button -->
+                        <div class="mb-3">
+                            <button id="back-button" class="btn btn-primary spa-route" data-path="/Friends" style="border: solid black;"><b class="spa-route" data-path="/Friends">Atrás</b></button>
+                        </div>
+
+                        <!-- Chat messages area, taking up the rest of the space -->
+                        <div class="flex-grow-1 overflow-auto">
+                            <div class="message received">
+                                <p>Hola, ¿cómo estás?</p>
+                                <span class="text-muted small">10:15 AM</span>
+                            </div>
+                            <div class="message sent">
+                                <p>Bien, ¿y tú?</p>
+                                <span class="text-muted small">10:16 AM</span>
+                            </div>
+                            <div class="message received">
+                                <p>Genial, gracias!</p>
+                                <span class="text-muted small">10:17 AM</span>
+                            </div>
+                        </div>
+
+                        <!-- Input area, fixed at the bottom -->
+                        <div class="input-area d-flex align-items-center mt-3">
+                            <input type="text" class="form-control" placeholder="Escribe un mensaje">
+                            <button class="send-btn ms-2">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,40 @@
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: api-db
+      POSTGRES_PORT: 5555
+    ports:
+      - 5555:5555
+    restart: unless-stopped
+    networks:
+      - net
+    command: -p 5555
+
+  tournament_api:
+    container_name: tournament_api
+    build: .
+    image: tournament_api
+    ports:
+      - 60000:9090
+    volumes:
+      - ./tournament_api:/usr/src/app
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - net
+    environment:
+      - DATABASE_URL=postgres://root:root@postgres:5555/api-db
+      - DB_HOST=postgres
+      - DB_PORT=5555
+      - DB_NAME=api-db
+      - DB_USER=root
+      - DB_PASSWORD=root
+
+networks:
+  net:
+    driver: bridge
