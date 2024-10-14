@@ -28,4 +28,4 @@ RUN chmod +x /usr/bin/wait-for-it.sh
 
 EXPOSE 9090
 
-CMD ["/usr/bin/wait-for-it.sh", "postgres", "5555", "/usr/bin/runserver.sh"]
+CMD ["/usr/bin/wait-for-it.sh", "tournament_postgres", "5555", "/usr/bin/runserver.sh"]

@@ -11,9 +11,9 @@ si se atasca el docker
     docker stop postgres
     docker rmi -f postgres
     docker rm postgres
-    docker stop tournament_api
-    docker rmi -f tournament_api
-    docker rm tournament_api
+    docker stop user_management_api
+    docker rmi -f user_management_api
+    docker rm user_management_api
 
 si la red no arranca.
     docker network prune
@@ -44,3 +44,10 @@ git pull origin master
 git add .
 git commit -m "que display_name"
 git push
+
+
+docker pull dpage/pgadmin4
+docker run -p 8000:80 \
+    -e 'PGADMIN_DEFAULT_EMAIL=aitor@uskola.com' \
+    -e 'PGADMIN_DEFAULT_PASSWORD=aitor' \
+    -d dpage/pgadmin4

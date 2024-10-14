@@ -1,0 +1,439 @@
+from django.db import models
+
+class User(models.Model):
+    id = models.AutoField(primary_key=True)  # SERIAL en PostgreSQL se mapea a AutoField en Django
+    username = models.CharField(max_length=50, unique=True)  # VARCHAR(50), campo único
+    email = models.EmailField(max_length=100, unique=True)  # VARCHAR(100), campo único
+    password = models.TextField()  # TEXT para la contraseña cifrada
+    avatar = models.URLField(max_length=200, blank=True, null=True)  # TEXT, URL de imagen (puedes usar URLField en Django)
+    status = models.CharField(max_length=20, choices=[
+        ('online', 'Online'),
+        ('offline', 'Offline'),
+        ('in_game', 'In Game'),
+        ('busy', 'Busy')
+    ], default='offline')  # VARCHAR(20), con opciones
+    created_at = models.DateTimeField(auto_now_add=True)  # TIMESTAMP, se establece automáticamente al crear el registro
+    updated_at = models.DateTimeField(auto_now=True)  # TIMESTAMP, se actualiza automáticamente en cada modificación
+    two_factor_auth = models.BooleanField(default=False)  # BOOLEAN para la autenticación de dos factores
+    session_42 = models.TextField(blank=True, null=True)  # TEXT, para la ID de sesión de 42, puede ser nulo o estar en blanco
+
+    def __str__(self):
+        return self.username  # Esto es lo que se devolverá cuando conviertas el objeto en una cadena (por ejemplo, en el admin)
+
+    class Meta:
+        db_table = 'users'  # Opcional: especifica el nombre de la tabla en la base de datos
+
+#///////////////////////////////////////////////////////////////////////////////////////////////////////////
+#Desglose:
+#AutoField: Utilizado para el campo id como clave primaria, que se autoincrementa (equivalente a SERIAL en PostgreSQL).
+#CharField: Se usa para campos de texto corto, como el username, email, y status. En el caso de username y email, he añadido el parámetro unique=True porque ambos deben ser únicos en la tabla.
+#EmailField: Específico para correos electrónicos, similar a VARCHAR pero con validación automática del formato.
+#TextField: Para textos largos como password y session_42.
+#URLField: Específico para almacenar URLs (es más claro para una URL de imagen de perfil).
+#DateTimeField: Para created_at y updated_at, con los parámetros auto_now_add=True y auto_now=True para que se generen automáticamente en la creación y actualización de registros.
+#BooleanField: Se usa para el campo two_factor_auth.
+#choices en CharField: Para el campo status, puedes definir un conjunto de valores posibles como "online", "offline", etc., con un valor predeterminado.
+#__str__: Método para definir cómo se representará el objeto en forma de cadena (por ejemplo, en la interfaz de administración de Django).
+#Con este modelo en Django, la tabla users de tu base de datos se creará automáticamente si ejecutas las migraciones de Django. Puedes añadir, actualizar, o consultar usuarios usando las funciones estándar del ORM de Django.
+
+#Siguiente paso:
+#Migraciones: Después de definir tu modelo, crea las migraciones con:
+
+#bash
+#Copy code
+#python manage.py makemigrations
+#python manage.py migrate
+#Admin: Si deseas administrar este modelo desde la interfaz de administración de Django, puedes registrarlo en admin.py:
+
+#python
+#Copy code
+#from django.contrib import admin
+#from .models import User
+
+#@admin.register(User)
+#class UserAdmin(admin.ModelAdmin):
+#    list_display = ('username', 'email', 'status', 'created_at')
+#    search_fields = ('username', 'email')
+#Esto te permitirá gestionar usuarios desde la interfaz de administración fácilmente.
+#**************************************************************************************************************
+from django.db import models
+from django.conf import settings  # Para la referencia a la tabla `users`
+
+class Match(models.Model):
+    id = models.AutoField(primary_key=True)  # SERIAL en PostgreSQL se mapea a AutoField en Django
+    player1 = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        related_name='matches_as_player1',
+        on_delete=models.CASCADE
+    )  # Referencia a users.id (player1)
+    player2 = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        related_name='matches_as_player2',
+        on_delete=models.CASCADE
+    )  # Referencia a users.id (player2)
+    score_player1 = models.IntegerField()  # Puntuación del jugador 1 (INT)
+    score_player2 = models.IntegerField()  # Puntuación del jugador 2 (INT)
+    status = models.CharField(max_length=20, choices=[
+        ('in_progress', 'In Progress'),
+        ('finished', 'Finished'),
+        ('cancelled', 'Cancelled')
+    ], default='in_progress')  # Estado de la partida (VARCHAR con opciones)
+    created_at = models.DateTimeField(auto_now_add=True)  # Fecha de inicio (TIMESTAMP)
+    ended_at = models.DateTimeField(blank=True, null=True)  # Fecha de finalización (puede ser nula si la partida está en curso)
+
+    def __str__(self):
+        return f"Match {self.id}: {self.player1.username} vs {self.player2.username}"
+
+    class Meta:
+        db_table = 'matches'  # Opcional: Especifica el nombre de la tabla en la base de datos
+
+#//////////////////////////////////////////////////////////////////////////////////////////////////////
+# Desglose:
+#AutoField: Para el campo id, se usa AutoField, que es equivalente a SERIAL en PostgreSQL.
+#ForeignKey: Para los jugadores (player1 y player2), usamos ForeignKey. Apunta al modelo User (la tabla users). Para hacer referencia al modelo de usuario por defecto de Django, se utiliza settings.AUTH_USER_MODEL, lo que te asegura compatibilidad incluso si personalizas el modelo de usuario en el futuro.
+#related_name: Permite acceder a las partidas de un usuario de manera diferenciada, ya que el mismo usuario puede ser tanto player1 como player2.
+#on_delete=models.CASCADE: Indica que si se elimina un usuario, también se eliminarán las partidas asociadas a ese usuario.
+#IntegerField: Para los campos de puntuación (score_player1 y score_player2), que almacenan números enteros.
+#CharField con choices: El campo status es un CharField limitado a 20 caracteres, y usa opciones predefinidas (in_progress, finished, cancelled).
+#DateTimeField: Para los campos created_at (fecha de inicio) y ended_at (fecha de finalización). auto_now_add=True asigna automáticamente la fecha cuando se crea la partida, y blank=True, null=True permite que ended_at sea opcional o esté vacío si la partida no ha terminado.
+#__str__: El método __str__ devuelve una representación legible de la partida, mostrando el ID y los nombres de los jugadores.
+#Meta: El atributo db_table es opcional, pero especifica que la tabla en la base de datos se llamará matches.
+#Siguiente paso:
+#Migraciones: Como en el modelo anterior, después de definir tu modelo, deberás generar y aplicar las migraciones con:
+
+#bash
+#Copy code
+#python manage.py makemigrations
+#python manage.py migrate
+#Admin: Para administrar las partidas en el panel de administración de Django, puedes registrarlo en admin.py:
+
+#python
+#Copy code
+#from django.contrib import admin
+#from .models import Match
+
+#@admin.register(Match)
+#class MatchAdmin(admin.ModelAdmin):
+#    list_display = ('player1', 'player2', 'status', 'created_at', 'ended_at')
+#    list_filter = ('status',)
+#    search_fields = ('player1__username', 'player2__username')
+#Esto te permitirá gestionar fácilmente las partidas desde la interfaz de administración de Django.
+
+#Con este modelo, la tabla matches se mapeará perfectamente a la base de datos y permitirá realizar todas las operaciones necesarias (creación de partidas, actualización de estado, etc.) mediante el ORM de Django.
+
+#********************************************************************************************************
+
+#OPCIONAL
+from django.db import models
+from django.conf import settings  # Para la referencia a la tabla `users`
+
+class Friend(models.Model):
+    id = models.AutoField(primary_key=True)  # SERIAL en PostgreSQL se mapea a AutoField en Django
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        related_name='friendships_as_user',
+        on_delete=models.CASCADE
+    )  # Referencia a users.id (user)
+    friend = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        related_name='friendships_as_friend',
+        on_delete=models.CASCADE
+    )  # Referencia a users.id (friend)
+    status = models.CharField(max_length=20, choices=[
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('blocked', 'Blocked')
+    ], default='pending')  # Estado de la relación (VARCHAR con opciones)
+    created_at = models.DateTimeField(auto_now_add=True)  # Fecha en que se envió la solicitud (TIMESTAMP)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.friend.username} ({self.status})"
+
+    class Meta:
+        db_table = 'friends'  # Opcional: especifica el nombre de la tabla en la base de datos
+        unique_together = ('user', 'friend')  # Para evitar duplicar relaciones entre los mismos usuarios
+#Desglose:
+#AutoField: Para el campo id, que es la clave primaria y se autoincrementa.
+#ForeignKey: Para las referencias a los usuarios:
+#user: Es el usuario que envía la solicitud de amistad.
+#friend: Es el usuario que recibe la solicitud de amistad. Ambos hacen referencia al modelo de usuario (settings.AUTH_USER_MODEL).
+#CharField con choices: El campo status almacena el estado de la relación (por ejemplo, pendiente, aceptado, bloqueado).
+#DateTimeField: Para la fecha en la que se envió la solicitud de amistad (created_at), con auto_now_add=True, que la asigna automáticamente al crearse.
+#unique_together: Garantiza que no se repita la misma relación de amistad entre dos usuarios (es decir, un usuario no puede ser amigo de otro más de una vez).
+#Siguiente paso:
+#Migraciones: Después de definir este modelo, deberás generar y aplicar las migraciones con:
+
+#bash
+#Copy code
+#python manage.py makemigrations
+#python manage.py migrate
+#Admin: Para gestionar las amistades desde el panel de administración de Django, puedes registrarlo en admin.py:
+
+#python
+#Copy code
+#from django.contrib import admin
+#from .models import Friend
+
+#@admin.register(Friend)
+#class FriendAdmin(admin.ModelAdmin):
+#    list_display = ('user', 'friend', 'status', 'created_at')
+#    list_filter = ('status',)
+#    search_fields = ('user__username', 'friend__username')
+#Con este modelo, podrás manejar fácilmente las relaciones de amistad entre los usuarios mediante el ORM de Django y la interfaz de administración.
+
+#********************************************************************************************************************
+
+#OPCIONAL
+
+from django.db import models
+from django.conf import settings  # Para la referencia a la tabla `users`
+
+class UserAchievement(models.Model):
+    id = models.AutoField(primary_key=True)  # SERIAL en PostgreSQL se mapea a AutoField en Django
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        related_name='achievements',
+        on_delete=models.CASCADE
+    )  # Referencia a users.id (user)
+    achievement = models.ForeignKey(
+        'Achievement',  # Nombre del modelo de logros (que tendrás que crear)
+        related_name='users',
+        on_delete=models.CASCADE
+    )  # Referencia a achievements.id (achievement)
+    unlocked_at = models.DateTimeField(auto_now_add=True)  # Fecha en que se obtuvo el logro (TIMESTAMP)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.achievement.name}"
+
+    class Meta:
+        db_table = 'user_achievements'  # Opcional: especifica el nombre de la tabla en la base de datos
+        unique_together = ('user', 'achievement')  # Evita que un usuario obtenga el mismo logro más de una vez
+#Desglose:
+#AutoField: Para el campo id, que es la clave primaria y se autoincrementa.
+#ForeignKey:
+#user: Hace referencia al modelo User (la tabla users), que es el usuario que ha obtenido el logro.
+#achievement: Hace referencia a la tabla achievements (que deberá ser otro modelo en tu proyecto de Django), que contiene la información de cada logro.
+#DateTimeField: Para el campo unlocked_at, que almacena la fecha en la que se obtuvo el logro. Se asigna automáticamente con auto_now_add=True al crearse el registro.
+#unique_together: Asegura que no se repita el mismo logro para el mismo usuario.
+#related_name: Te permite acceder a los logros de un usuario con user.achievements y a los usuarios que han desbloqueado un logro con achievement.users.
+#Modelo adicional (Logros):
+#Tendrás que crear otro modelo para los logros (tabla achievements), algo como esto:
+
+#python
+#Copy code
+#*************************************************************************************************************************
+#OPCIONAL
+class Achievement(models.Model):
+    id = models.AutoField(primary_key=True)  # ID único del logro
+    name = models.CharField(max_length=100, unique=True)  # Nombre del logro
+    description = models.TextField()  # Descripción del logro
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'achievements'
+#Siguiente paso:
+#Migraciones: Después de definir estos modelos, genera y aplica las migraciones con:
+
+#bash
+#Copy code
+#python manage.py makemigrations
+#python manage.py migrate
+#Admin: Para gestionar los logros y la relación entre usuarios y logros en el panel de administración de Django, puedes registrar estos modelos en admin.py:
+
+#python
+#Copy code
+#from django.contrib import admin
+#from .models import UserAchievement, Achievement
+
+#@admin.register(UserAchievement)
+#class UserAchievementAdmin(admin.ModelAdmin):
+#    list_display = ('user', 'achievement', 'unlocked_at')
+#    search_fields = ('user__username', 'achievement__name')
+
+#@admin.register(Achievement)
+#class AchievementAdmin(admin.ModelAdmin):
+#    list_display = ('name', 'description')
+#    search_fields = ('name',)
+#Esto te permitirá gestionar tanto los logros como las relaciones de logros de los usuarios desde la interfaz de administración de Django.
+#************************************************************************************************************
+from django.db import models
+
+class ChatRoom(models.Model):
+    id = models.AutoField(primary_key=True)  # SERIAL en PostgreSQL se mapea a AutoField en Django
+    name = models.CharField(max_length=100, unique=True)  # Nombre de la sala de chat (VARCHAR con límite de 100 caracteres)
+    is_private = models.BooleanField(default=False)  # Si la sala es privada o pública (BOOLEAN)
+    created_at = models.DateTimeField(auto_now_add=True)  # Fecha de creación de la sala (TIMESTAMP)
+
+    def __str__(self):
+        return f"{'Private' if self.is_private else 'Public'} Chat Room: {self.name}"
+
+    class Meta:
+        db_table = 'chat_rooms'  # Opcional: especifica el nombre de la tabla en la base de datos
+#Desglose:
+#AutoField: Para el campo id, que es la clave primaria y se autoincrementa.
+#CharField: El campo name almacena el nombre de la sala de chat, y está limitado a 100 caracteres. Se asegura la unicidad con unique=True para evitar nombres duplicados.
+#BooleanField: El campo is_private indica si la sala es privada o pública, siendo False (pública) el valor por defecto.
+#DateTimeField: El campo created_at registra la fecha de creación de la sala y se asigna automáticamente al crearse con auto_now_add=True.
+#Siguiente paso:
+#Migraciones: Después de definir este modelo, genera y aplica las migraciones con:
+
+#bash
+#Copy code
+#python manage.py makemigrations
+#python manage.py migrate
+#Admin: Para gestionar las salas de chat en el panel de administración de Django, puedes registrarlo en admin.py:
+
+#python
+#Copy code
+#from django.contrib import admin
+#from .models import ChatRoom
+
+#@admin.register(ChatRoom)
+#class ChatRoomAdmin(admin.ModelAdmin):
+#    list_display = ('name', 'is_private', 'created_at')
+#    list_filter = ('is_private',)
+#    search_fields = ('name',)
+#Este modelo te permitirá manejar las salas de chat, ya sean públicas o privadas, y gestionar las interacciones entre los usuarios dentro de estas salas.
+#*************************************************************************************************************
+
+from django.db import models
+from django.conf import settings  # Para la referencia a la tabla `users`
+
+class Message(models.Model):
+    id = models.AutoField(primary_key=True)  # SERIAL en PostgreSQL se mapea a AutoField en Django
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        related_name='messages',
+        on_delete=models.CASCADE
+    )  # Referencia a users.id (el usuario que envió el mensaje)
+    chat_room = models.ForeignKey(
+        'ChatRoom',  # Referencia a chat_rooms.id (la sala de chat)
+        related_name='messages',
+        on_delete=models.CASCADE
+    )  # Referencia a la sala de chat
+    content = models.TextField()  # Contenido del mensaje (TEXT)
+    created_at = models.DateTimeField(auto_now_add=True)  # Fecha en que se envió el mensaje (TIMESTAMP)
+
+    def __str__(self):
+        return f"Message by {self.user.username} in {self.chat_room.name}"
+
+    class Meta:
+        db_table = 'messages'  # Opcional: especifica el nombre de la tabla en la base de datos
+        ordering = ['-created_at']  # Ordena los mensajes por fecha de envío en orden descendente
+#Desglose:
+#AutoField: Para el campo id, que es la clave primaria y se autoincrementa.
+#ForeignKey:
+#user: Hace referencia al modelo de User, que es el usuario que envía el mensaje.
+#chat_room: Hace referencia al modelo ChatRoom, que es la sala de chat donde se envía el mensaje.
+#TextField: Para el contenido del mensaje, que puede tener longitud variable.
+#DateTimeField: Para la fecha en que se envió el mensaje (created_at), con auto_now_add=True para que se asigne automáticamente al crearse el mensaje.
+#ordering: Configura los mensajes para que se devuelvan ordenados por fecha de creación de manera descendente (el más reciente primero).
+#Siguiente paso:
+#Migraciones: Después de definir este modelo, genera y aplica las migraciones con:
+
+#bash
+#Copy code
+#python manage.py makemigrations
+#python manage.py migrate
+#Admin: Para gestionar los mensajes desde el panel de administración de Django, puedes registrarlo en admin.py:
+
+#python
+#Copy code
+#from django.contrib import admin
+#from .models import Message
+
+#@admin.register(Message)
+#class MessageAdmin(admin.ModelAdmin):
+#    list_display = ('user', 'chat_room', 'content', 'created_at')
+#    search_fields = ('user__username', 'chat_room__name', 'content')
+#    list_filter = ('chat_room', 'created_at')
+#Este modelo te permitirá gestionar los mensajes enviados dentro de las salas de chat, relacionándolos tanto con los usuarios como con las salas de chat donde fueron enviados
+#*********************************************************************************************************************
+#OPCIONAL
+from django.db import models
+
+
+class BlockList(models.Model):
+    id = models.AutoField(primary_key=True)
+    user_id = models.ForeignKey(User, related_name='blockers', on_delete=models.CASCADE)
+    blocked_user_id = models.ForeignKey(User, related_name='blocked_users', on_delete=models.CASCADE)
+    blocked_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user_id.username} blocked {self.blocked_user_id.username} on {self.blocked_at}"
+
+    class Meta:
+        db_table = 'block_list'
+        unique_together = ('user_id', 'blocked_user_id')  # Asegura que un usuario no pueda bloquear a otro más de una vez
+#Desglose:
+#BlockList Model:
+#id: Clave primaria autoincremental.
+#user_id: Relación con el modelo User, representando al usuario que bloquea.
+#blocked_user_id: Relación con el modelo User, representando al usuario bloqueado.
+#blocked_at: Fecha y hora en que se realizó el bloqueo, se establece automáticamente al crear el registro.
+#unique_together: Asegura que un usuario no pueda bloquear a otro más de una vez.
+#Siguientes pasos:
+#Migraciones: Después de definir tu modelo, crea las migraciones con:
+
+#bash
+#Copy code
+#python manage.py makemigrations
+#python manage.py migrate
+#Admin: Para gestionar el modelo BlockList desde la interfaz de administración de Django, puedes registrarlo en admin.py:
+
+#python
+#Copy code
+#from django.contrib import admin
+#from .models import BlockList
+
+#@admin.register(BlockList)
+#class BlockListAdmin(admin.ModelAdmin):
+#    list_display = ('user_id', 'blocked_user_id', 'blocked_at')
+#    search_fields = ('user_id__username', 'blocked_user_id__username')
+#******************************************************************************************************
+from django.db import models
+
+
+
+
+class TwoFactorAuthenticator(models.Model):
+    id = models.AutoField(primary_key=True)
+    user_id = models.OneToOneField(User, on_delete=models.CASCADE)  # Relación uno a uno con User
+    google_code = models.CharField(max_length=6)  # Código de autenticación de Google, ajusta el tamaño según necesites
+    created_at = models.DateTimeField(auto_now_add=True)  # Fecha en que se generó el código
+    updated_at = models.DateTimeField(auto_now=True)  # Fecha de última actualización
+    active = models.BooleanField(default=True)  # Indica si la autenticación en dos pasos está activa
+
+    def __str__(self):
+        return f"2FA for {self.user_id.username}"
+
+    class Meta:
+        db_table = 'two_factor_authenticator'
+#Desglose:
+#TwoFactorAuthenticator Model:
+#id: Clave primaria autoincremental.
+#user_id: Relación uno a uno con el modelo User, cada usuario puede tener una configuración de 2FA.
+#google_code: Código de autenticación de Google (generalmente de 6 dígitos).
+#created_at: Fecha y hora en que se generó el código, se establece automáticamente.
+#updated_at: Fecha y hora de la última actualización, se actualiza automáticamente.
+#active: Campo booleano que indica si la autenticación en dos pasos está activa.
+#Siguientes pasos:
+#Migraciones: Crea las migraciones y aplícalas:
+
+#bash
+#Copy code
+#python manage.py makemigrations
+#python manage.py migrate
+#Admin: Registra el modelo en admin.py para gestionarlo desde la interfaz de administración:
+
+#python
+#Copy code
+#from django.contrib import admin
+#from .models import TwoFactorAuthenticator
+
+#@admin.register(TwoFactorAuthenticator)
+#class TwoFactorAuthenticatorAdmin(admin.ModelAdmin):
+#    list_display = ('user_id', 'google_code', 'created_at', 'active')
+#    search_fields = ('user_id__username',)

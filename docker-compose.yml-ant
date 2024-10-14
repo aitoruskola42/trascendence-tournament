@@ -1,0 +1,29 @@
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: api-db
+    restart: unless-stopped
+    networks:
+      - net
+
+  user_management_api:
+    container_name: user_management_api
+    build: .
+    image: user_management_api
+    ports:
+      - 50000:8080
+    volumes:
+      - ./user_management_api:/usr/src/app
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - net
+
+networks:
+  net:
+    driver: bridge
