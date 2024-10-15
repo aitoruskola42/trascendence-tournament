@@ -4,11 +4,93 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
-from ..models import Tournament, Participation, Match, ApiUser
-from ..serializer import TournamentOpenSerializer, TournamentSerializer, ParticipationSerializer, MatchSerializer
+from ..models import Tournament, Participation, Match4, ApiUser
+from ..serializer import TournamentOpenSerializer, TournamentSerializer, ParticipationSerializer, Match4Serializer
 from django.db import models
 from django.db.models import Count, F
 from django.db.models.functions import Coalesce
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_four_player_tournament(request):
+    serializer = TournamentSerializer(data=request.data, context={'request': request})
+    if serializer.is_valid():
+        tournament = serializer.save(tournament_type='FOUR_PLAYER', max_participants=4)
+        
+        # Crear participación para el creador
+        Participation.objects.create(
+            tournament=tournament,
+            user=request.user.apiuser,
+            display_name=request.user.apiuser.display_name
+        )
+        
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def start_four_player_tournament(request, pk):
+    tournament = get_object_or_404(Tournament, pk=pk, tournament_type='FOUR_PLAYER')
+    if tournament.status != 'REGISTRATION' or tournament.participants.count() != 4:
+        return Response({'error': 'Cannot start tournament'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    participants = list(tournament.participation_set.all())
+    
+    # Crear partida semifinal 1
+    Match4.create_four_player_match(tournament, participants[0], participants[1], participants[2], participants[3], round_num=1, order=1)
+    
+    tournament.status = 'IN_PROGRESS'
+    tournament.save()
+    
+    return Response({'status': 'Tournament started'}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def record_match4_result(request, match_pk):
+    match = get_object_or_404(Match4, pk=match_pk)
+    
+    # Validar y actualizar puntuaciones
+    for i in range(1, 5):
+        score = request.data.get(f'player{i}_score')
+        if score is not None:
+            setattr(match, f'player{i}_score', score)
+    
+    # Determinar ganador y segundo lugar
+    scores = [(getattr(match, f'player{i}'), getattr(match, f'player{i}_score')) for i in range(1, 5)]
+    scores.sort(key=lambda x: x[1], reverse=True)
+    
+    match.winner = scores[0][0]
+    match.save()
+    
+    # Si es la primera ronda, crear la final
+    if match.round == 1:
+        Match4.create_four_player_match(
+            match.tournament,
+            scores[0][0],  # Ganador
+            scores[1][0],  # Segundo lugar
+            scores[2][0],  # Tercer lugar
+            scores[3][0],  # Cuarto lugar
+            round_num=2,
+            order=1
+        )
+    elif match.round == 2:
+        # Finalizar el torneo
+        match.tournament.status = 'FINISHED'
+        match.tournament.save()
+    
+    serializer = Match4Serializer(match)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_four_player_matches(request, tournament_pk):
+    tournament = get_object_or_404(Tournament, pk=tournament_pk, tournament_type='FOUR_PLAYER')
+    matches = Match4.objects.filter(tournament=tournament)
+    serializer = Match4Serializer(matches, many=True)
+    return Response(serializer.data)
+
+
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])

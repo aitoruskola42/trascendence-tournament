@@ -19,7 +19,7 @@ services:
     container_name: tournament_pgAdmin
     image: dpage/pgadmin4:latest
     environment:
-      PGADMIN_DEFAULT_EMAIL: root
+      PGADMIN_DEFAULT_EMAIL: root@root.com
       PGADMIN_DEFAULT_PASSWORD: root
       PGADMIN_LISTEN_PORT: 8000
     ports:

@@ -7,8 +7,41 @@ from rest_framework import serializers  # Serialization framework for REST APIs
 
 # Local imports
 from .models import ApiUser  # Custom User models
-from .models import Tournament, Participation, Match, Game, GameEvent, ApiUser
+from .models import Tournament, Participation, ApiUser, Match4, Match2
 User = get_user_model()  # Get the active User model
+
+class ParticipationSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(source='user.id')
+    display_name = serializers.CharField(source='user.display_name')
+
+    class Meta:
+        model = Participation
+        fields = ['id', 'user_id', 'display_name', 'score']
+
+class Match4Serializer(serializers.ModelSerializer):
+    player1 = ParticipationSerializer()
+    player2 = ParticipationSerializer()
+    player3 = ParticipationSerializer()
+    player4 = ParticipationSerializer()
+    winner = ParticipationSerializer()
+
+    class Meta:
+        model = Match4
+        fields = ['id', 'tournament', 'player1', 'player2', 'player3', 'player4', 
+                  'player1_score', 'player2_score', 'player3_score', 'player4_score', 
+                  'winner', 'round', 'order', 'date', 'status']
+
+
+class Match2Serializer(serializers.ModelSerializer):
+    player1 = ParticipationSerializer()
+    player2 = ParticipationSerializer()
+    winner = ParticipationSerializer()
+
+    class Meta:
+        model = Match4
+        fields = ['id', 'tournament', 'player1', 'player2', 
+                  'player1_score', 'player2_score',  
+                  'winner', 'round', 'order', 'date', 'status']
 
 
 class ParticipantSerializer(serializers.ModelSerializer):
@@ -19,12 +52,8 @@ class ParticipantSerializer(serializers.ModelSerializer):
         model = Participation
         fields = ['id', 'display_name', 'score']
 
-class ParticipationSerializer(serializers.ModelSerializer):
-    user = ParticipantSerializer(read_only=True)
 
-    class Meta:
-        model = Participation
-        fields = ['id', 'user', 'tournament', 'score']  # Ajusta estos campos según tu modelo
+
 
 
 class TournamentOpenSerializer(serializers.ModelSerializer):
@@ -107,20 +136,35 @@ class TournamentSerializer(serializers.ModelSerializer):
         data['creator'] = instance.creator  # Asegúrate de que el creator se incluya en la representación
         return data
 
-class MatchSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Match
-        fields = '__all__'
+class MatchDetail4Serializer(serializers.ModelSerializer):
+    player1 = ParticipantSerializer(read_only=True)
+    player2 = ParticipantSerializer(read_only=True)
+    player3 = ParticipantSerializer(read_only=True)
+    player4 = ParticipantSerializer(read_only=True)
+    winner = ParticipantSerializer(read_only=True)
+    tournament = TournamentSerializer(read_only=True)
 
-class GameSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Game
-        fields = '__all__'
+        model = Match4
+        fields = ['id', 'tournament', 'player1', 'player2', 'player3', 'player4', 
+                  'player1_score', 'player2_score', 'player3_score', 'player4_score', 
+                  'winner', 'round', 'order', 'date', 'status']
 
-class GameEventSerializer(serializers.ModelSerializer):
+
+class MatchDetail2Serializer(serializers.ModelSerializer):
+    player1 = ParticipantSerializer(read_only=True)
+    player2 = ParticipantSerializer(read_only=True)
+    winner = ParticipantSerializer(read_only=True)
+    tournament = TournamentSerializer(read_only=True)
+
     class Meta:
-        model = GameEvent
-        fields = '__all__'
+        model = Match4
+        fields = ['id', 'tournament', 'player1', 'player2', 
+                  'player1_score', 'player2_score',  
+                  'winner', 'round', 'order', 'date', 'status']
+
+
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

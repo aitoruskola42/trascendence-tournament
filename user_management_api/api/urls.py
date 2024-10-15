@@ -15,6 +15,21 @@ from django.urls import path
 
 
 urlpatterns = [
+    path('matches2/', matches_views.match2_list, name='match_list'),
+    path('matches2/<int:pk>/', matches_views.match2_detail, name='match_detail'),
+    path('matches2/<int:pk>/start/', matches_views.start2_match, name='start_match'),
+    path('matches2/<int:pk>/update_score/', matches_views.update_match2_score, name='update_match_score'),
+
+    path('matches4/', matches_views.match4_list, name='match_list'),
+    path('matches4/<int:pk>/', matches_views.match4_detail, name='match_detail'),
+    path('matches4/<int:pk>/start/', matches_views.start4_match, name='start_match'),
+    path('matches4/<int:pk>/update_score/', matches_views.update_match4_score, name='update_match_score'),
+
+    path('tournaments/four-player/create/', tournaments_views.create_four_player_tournament, name='create_four_player_tournament'),
+    path('tournaments/four-player/<int:pk>/start/', tournaments_views.start_four_player_tournament, name='start_four_player_tournament'),
+    path('tournaments/four-player/match/<int:match_pk>/result/', tournaments_views.record_match4_result, name='record_match4_result'),
+    path('tournaments/four-player/<int:tournament_pk>/matches/', tournaments_views.get_four_player_matches, name='get_four_player_matches'),
+
     # Rutas para torneos regulares
     path('tournaments/ready/', tournaments_views.tournament_ready_list, name='tournament_ready_list'),
     path('tournaments/open/', tournaments_views.tournament_open_list, name='tournament_open_list'),
@@ -32,15 +47,7 @@ urlpatterns = [
     path('one-vs-one/', tournaments_views.get_one_vs_one_matches, name='get_one_vs_one_matches'),
 ]
 
-urlpatterns += [
-    path('matches/', matches_views.match_list, name='match_list'),
-    path('matches/<int:pk>/', matches_views.match_detail, name='match_detail'),
-    path('matches/<int:pk>/start/', matches_views.start_match, name='start_match'),
-    path('matches/<int:match_pk>/games/<int:game_pk>/point/', matches_views.record_point, name='record_point'),
-    path('matches/<int:match_pk>/games/<int:game_pk>/pause/', matches_views.pause_game, name='pause_game'),
-    path('matches/<int:match_pk>/games/<int:game_pk>/resume/', matches_views.resume_game, name='resume_game'),
-    path('matches/<int:match_pk>/games/<int:game_pk>/events/', matches_views.game_events, name='game_events'),
-]
+
 
 urlpatterns += [
     path("users/", user_views.get_users, name="get_users"),

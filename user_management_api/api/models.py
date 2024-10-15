@@ -94,13 +94,13 @@ class Participation(models.Model):
 
 
 
-class Match(models.Model):
-    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='matches')
-    player1 = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name='matches_as_player1')
-    player2 = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name='matches_as_player2')
+class Match2(models.Model):
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='matches_2_players')
+    player1 = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name='matches_2p_player1')
+    player2 = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name='matches_2p_player2')
     player1_score = models.IntegerField(default=0)
     player2_score = models.IntegerField(default=0)
-    winner = models.ForeignKey(Participation, on_delete=models.SET_NULL, null=True, related_name='matches_won')
+    winner = models.ForeignKey(Participation, on_delete=models.SET_NULL, null=True, related_name='matches_2p_won')
     round = models.IntegerField(default=1)
     order = models.IntegerField()
     date = models.DateTimeField(auto_now_add=True)
@@ -109,7 +109,7 @@ class Match(models.Model):
         ordering = ['date']
 
     def __str__(self):
-        return f"{self.player1.alias} vs {self.player2.alias} - {self.tournament.name}"
+        return f"{self.player1.display_name} vs {self.player2.display_name} - {self.tournament.name}"
 
     @classmethod
     def create_one_vs_one_match(cls, player1, player2):
@@ -123,43 +123,56 @@ class Match(models.Model):
         )
 
 
-class Game(models.Model):
-    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='games')
+
+class Match4(models.Model):
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='matches_4_players')
+    player1 = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name='matches_4p_player1')
+    player2 = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name='matches_4p_player2')
+    player3 = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name='matches_4p_player3')
+    player4 = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name='matches_4p_player4')
     player1_score = models.IntegerField(default=0)
     player2_score = models.IntegerField(default=0)
-    winner = models.ForeignKey(Participation, on_delete=models.SET_NULL, null=True, related_name='games_won')
-    start_time = models.DateTimeField(auto_now_add=True)
-    end_time = models.DateTimeField(null=True, blank=True)
+    player3_score = models.IntegerField(default=0)
+    player4_score = models.IntegerField(default=0)
+    winner = models.ForeignKey(Participation, on_delete=models.SET_NULL, null=True, related_name='matches_4p_won')
+    round = models.IntegerField(default=1)
+    order = models.IntegerField()
+    date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=[
+        ('PENDING', 'Pending'),
+        ('IN_PROGRESS', 'In Progress'),
+        ('FINISHED', 'Finished')
+    ], default='PENDING')
+
+    class Meta:
+        ordering = ['date']
 
     def __str__(self):
-        return f"Game in {self.match} - {self.player1_score}:{self.player2_score}"
+        return f"{self.player1.display_name} vs {self.player2.display_name} vs {self.player3.display_name} vs {self.player4.display_name} - {self.tournament.name}"
 
+    @classmethod
+    def create_four_player_match(cls, tournament, player1, player2, player3, player4, round_num, order):
+        return cls.objects.create(
+            tournament=tournament,
+            player1=player1,
+            player2=player2,
+            player3=player3,
+            player4=player4,
+            round=round_num,
+            order=order
+        )
+    
 
-class GameEvent(models.Model):
-    EVENT_TYPES = [
-        ('POINT', 'Point Scored'),
-        ('PAUSE', 'Game Paused'),
-        ('RESUME', 'Game Resumed'),
-        ('END', 'Game Ended')
-    ]
+    def is_finished(self):
+        # Implementa la lógica para determinar si el partido ha terminado
+        # Por ejemplo, si algún jugador ha alcanzado cierta puntuación
+        return max(self.player1_score, self.player2_score, self.player3_score, self.player4_score) >= 10
 
-    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='events')
-    event_type = models.CharField(max_length=10, choices=EVENT_TYPES)
-    player = models.ForeignKey(Participation, on_delete=models.SET_NULL, null=True, blank=True)
-    timestamp = models.DateTimeField(auto_now_add=True)
-    details = models.JSONField(null=True, blank=True)
-
-    def __str__(self):
-        return f"{self.event_type} in {self.game} at {self.timestamp}"
-
-
-@receiver(post_migrate)
-def create_one_vs_one_tournament(sender, **kwargs):
-    if sender.name == 'tournament_api':  # Reemplaza con el nombre de tu app
-        Tournament.get_or_create_one_vs_one_tournament()
-
-
-@receiver(post_save, sender=Tournament)
-def ensure_creator_is_participant(sender, instance, created, **kwargs):
-    if created and instance.creator:
-        instance.participants.add(instance.creator)
+    def determine_winner(self):
+        scores = [
+            (self.player1, self.player1_score),
+            (self.player2, self.player2_score),
+            (self.player3, self.player3_score),
+            (self.player4, self.player4_score)
+        ]
+        self.winner = max(scores, key=lambda x: x[1])[0]
