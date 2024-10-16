@@ -15,6 +15,9 @@ from django.urls import path
 
 
 urlpatterns = [
+
+
+    path('users/check-token/', user_views.check_token, name='check_token'),
     path('matches2/', matches_views.match2_list, name='match_list'),
     path('matches2/<int:pk>/', matches_views.match2_detail, name='match_detail'),
     path('matches2/<int:pk>/start/', matches_views.start2_match, name='start_match'),
@@ -50,6 +53,7 @@ urlpatterns = [
 
 
 urlpatterns += [
+    path('users/check-token/', user_views.check_token, name='check_token'),    
     path("users/", user_views.get_users, name="get_users"),
     path("users/<int:pk>/", user_views.get_user, name="get_user"),
     path("users/create/", user_views.create_user, name="create_user"),

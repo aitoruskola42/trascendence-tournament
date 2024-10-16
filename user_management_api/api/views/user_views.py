@@ -42,6 +42,34 @@ def get_participations_by_user_id(user_id):
         return None  # Maneja el caso donde el ApiUser no existe
 
 
+
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def check_token(request):
+    try:
+        # Obtener el token del usuario autenticado
+        token = request.auth
+
+        if not isinstance(token, AccessToken):
+            return Response({"error": "Token no válido"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Preparar la respuesta
+        response_data = {
+            "token_valid": True,
+            "user_id": token.get('user_id'),
+            "username": token.get('username'),  # Asegúrate de incluir esto
+            "display_name": token.get('display_name'),
+            "friends": token.get('friends'),
+            "friends_blocked": token.get('friends_blocked'),
+        }
+
+        return Response(response_data)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -215,6 +243,24 @@ def get_user_profile(request):
         return Response({"error": "User profile not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    refresh['username'] = user.username
+    try:
+        api_user = ApiUser.objects.get(user=user)
+        refresh['display_name'] = api_user.display_name
+        refresh['friends'] = api_user.friends
+        refresh['friends_blocked'] = api_user.friends_blocked
+    except ApiUser.DoesNotExist:
+        refresh['display_name'] = "Apiuser Error"
+        refresh['friends'] = "Apiuser Error"
+        refresh['friends_blocked'] = "Apiuser Error"
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
+
+
 @api_view(['POST'])
 def login_user(request):
     logger.debug(f"Received login request for user: {request.data.get('username')}")
@@ -242,17 +288,18 @@ def login_user(request):
             return Response({'error': 'User profile not found'}, status=status.HTTP_404_NOT_FOUND)
 
         logger.info(f"User {username} logged in successfully")
-        refresh = RefreshToken.for_user(user)
+        tokens = get_tokens_for_user(user)
+        
         return Response({
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
+            **tokens,
             'user_id': user.id,
             'username': user.username,
-            'display_name' : api_user.display_name
+            'display_name': api_user.display_name
         })
     
     logger.warning(f"Invalid login attempt for user: {username}")
     return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 @api_view(['POST'])
