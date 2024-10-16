@@ -247,7 +247,8 @@ def login_user(request):
             'refresh': str(refresh),
             'access': str(refresh.access_token),
             'user_id': user.id,
-            'username': user.username
+            'username': user.username,
+            'display_name' : api_user.display_name
         })
     
     logger.warning(f"Invalid login attempt for user: {username}")

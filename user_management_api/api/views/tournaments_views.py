@@ -136,31 +136,32 @@ def tournament_ready_list(request):
 def tournament_open_list(request):
     if request.method == 'GET':
         current_user = request.user.apiuser
+        print(f"Current user ID: {current_user.id}")
         
-        # Obtener los IDs de los torneos en los que el usuario ya está participando
         participating_tournament_ids = Participation.objects.filter(user=current_user).values_list('tournament_id', flat=True)
+        print(f"Participating tournament IDs: {list(participating_tournament_ids)}")
         
-        # Filtrar los torneos excluyendo los creados por el usuario y aquellos en los que ya está participando
-        tournaments = Tournament.objects.filter(tournament_type='REGULAR').exclude(
+        tournaments = Tournament.objects.all()
+        print(f"Total tournaments: {tournaments.count()}")
+        
+        tournaments = tournaments.exclude(
             models.Q(creator=current_user.id) | models.Q(id__in=participating_tournament_ids)
         )
+        print(f"Tournaments after excluding created and participating: {tournaments.count()}")
         
-        # Anotar el número de participantes actuales
         tournaments = tournaments.annotate(
             current_participants=Count('participation')
         )
         
-        # Filtrar para mostrar solo los torneos que no están completos
         tournaments = tournaments.filter(current_participants__lt=F('max_participants'))
+        print(f"Open tournaments: {tournaments.count()}")
+        
+        for tournament in tournaments:
+            print(f"Tournament ID: {tournament.id}, Name: {tournament.name}, Current Participants: {tournament.current_participants}, Max Participants: {tournament.max_participants}")
         
         serializer = TournamentOpenSerializer(tournaments, many=True)
         return Response(serializer.data)
-    elif request.method == 'POST':
-        serializer = TournamentOpenSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(creator=request.user.apiuser)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 @api_view(['GET'])

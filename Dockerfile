@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y netcat-openbsd
 
 # Install Python dependencies
 #RUN pip install Django djangorestframework psycopg2-binary django-cors-headers Pillow django-oauth-toolkit requests-oauthlib djangorestframework-simplejwt pyotp qrcode
-RUN pip install Django djangorestframework psycopg2 django-cors-headers Pillow django-oauth-toolkit requests-oauthlib djangorestframework-simplejwt pyotp qrcode
+RUN pip install Django djangorestframework psycopg2 django-cors-headers Pillow django-oauth-toolkit requests-oauthlib djangorestframework-simplejwt pyotp qrcode pytz
 
 # Django: High-level Python web framework
 # djangorestframework: Toolkit for building Web APIs in Django
@@ -19,6 +19,7 @@ RUN pip install Django djangorestframework psycopg2 django-cors-headers Pillow d
 # djangorestframework-simplejwt: JWT authentication backend for Django REST Framework
 # pyotp: Python implementation of the One-Time Password (OTP) algorithm -> 2FA
 # qrcode: QR code generator in Python -> 2FA
+# pytz: es una biblioteca de Python que proporciona funcionalidades para trabajar con zonas horarias.
 
 COPY ./runserver.sh /usr/bin/
 RUN chmod +x /usr/bin/runserver.sh
