@@ -28,7 +28,11 @@ LOG_FILE = os.path.join(BASE_DIR, 'debug.log')
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-48&#qaq7ol3_s&*f%^#v5@+9@3k9-)dyj1%)hhk*6cd%6_k*#1'
+#SECRET_KEY = 'django-insecure-48&#qaq7ol3_s&*f%^#v5@+9@3k9-)dyj1%)hhk*6cd%6_k*#1'
+
+#Este es el token que hay que compartir con los otros dockers.
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'en la playa se esta mejor que aqui')
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
