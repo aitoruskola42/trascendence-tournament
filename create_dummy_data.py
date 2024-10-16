@@ -126,19 +126,36 @@ def create_participations():
 
 
     score = random.randint(0, 5)
-    execute_sql(participations_sql, (1, 4, score, "goiko display"))
-    execute_sql(participations_sql, (1, 1, score, "aitor display"))
+    execute_sql(participations_sql, (3, 1, score, "goiko display"))
+    score = random.randint(0, 5)
+    execute_sql(participations_sql, (1, 1, score, "ait or displa y"))
+    score = random.randint(0, 5)
+    execute_sql(participations_sql, (4, 1, score, "alejandro display"))
+    score = random.randint(0, 5)
+    execute_sql(participations_sql, (1, 2, score, "alejandro display"))
+    score = random.randint(0, 5)
+    execute_sql(participations_sql, (2, 1, score, "Goiko display 2"))
+    score = random.randint(0, 5)
+    execute_sql(participations_sql, (1, 3, score, "user raro dis play"))
+    score = random.randint(0, 5)
+    execute_sql(participations_sql, (3, 3, score, "user raro displa y"))
+    score = random.randint(0, 5)
+    execute_sql(participations_sql, (4, 4, score, "user ra ro display"))
+    score = random.randint(0, 5)
+    execute_sql(participations_sql, (5, 5, score, "us er ra ro display"))
+    score = random.randint(0, 5)
+    execute_sql(participations_sql, (6, 6, score, "us er ra ro display"))
 
     score = random.randint(0, 5)
-    execute_sql(participations_sql, (2, 1, score, "aitor display"))
+    execute_sql(participations_sql, (5, 2, score, "us er ra ro display"))
     score = random.randint(0, 5)
-    execute_sql(participations_sql, (1, 3, score, "alejandro display"))
+    execute_sql(participations_sql, (6, 4, score, "us er ra ro display"))
+
     score = random.randint(0, 5)
-    execute_sql(participations_sql, (4, 3, score, "alejandro display"))
+    execute_sql(participations_sql, (7, 4, score, "us er ra ro display"))
     score = random.randint(0, 5)
-    execute_sql(participations_sql, (3, 4, score, "Goiko display 2"))
-    score = random.randint(0, 5)
-    execute_sql(participations_sql, (5, 4, score, "user raro display"))
+    execute_sql(participations_sql, (8, 4, score, "us er ra ro display"))
+
 
 
 
@@ -184,10 +201,15 @@ def create_matches():
     INSERT INTO api_match4 (tournament_id, player1_id, player2_id, player3_id, player4_id, player1_score, player2_score, player3_score, player4_score, winner_id, round, "order", date, status)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
-    execute_sql(matches2_sql, (1, 1, 2, 10, 11, 2, 1, 1, datetime.now(pytz.UTC)))
+
+
+    execute_sql(matches2_sql, (2, 1, 2, 10, 11, 2, 1, 1, datetime.now(pytz.UTC)))
+    execute_sql(matches2_sql, (4, 2, 3, 10, 11, 1, 1, 1, datetime.now(pytz.UTC)))
         
- 
-    execute_sql(matches4_sql, (4, 1, 2, 6, 7, 1, 2, 3, 4, 1, 1, 1, datetime.now(pytz.UTC), 'FINISHED'))
+    execute_sql(matches4_sql, (1, 1, 2, 3, 4, 10, 11, 10, 9, 2, 1, 1, datetime.now(pytz.UTC), 1))
+    execute_sql(matches4_sql, (3, 1, 2, 4, 5, 10, 11, 10, 9, 1, 1, 1, datetime.now(pytz.UTC), 1))
+          
+
     
     print("Created matches for all tournaments")
 
@@ -213,7 +235,7 @@ def main():
     create_users()
     create_tournaments()
     create_participations()
-#   create_matches()
+    create_matches()
 
 if __name__ == "__main__":
     main()

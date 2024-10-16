@@ -104,8 +104,7 @@ def tournament_ready_list(request):
         
         # Filtrar los torneos para incluir solo aquellos en los que el usuario está participando
         tournaments = Tournament.objects.filter(
-            tournament_type='REGULAR',
-            id__in=participating_tournament_ids
+             id__in=participating_tournament_ids
         )
         print(f"Tournaments after initial filter: {tournaments.count()}")
         
@@ -122,6 +121,7 @@ def tournament_ready_list(request):
         print(f"Final tournaments count: {tournaments.count()}")
         
         serializer = TournamentOpenSerializer(tournaments, many=True)
+        print(f"Serialized data: {serializer.data}")  # Añadido para depuración
         return Response(serializer.data)
     elif request.method == 'POST':
         serializer = TournamentOpenSerializer(data=request.data)

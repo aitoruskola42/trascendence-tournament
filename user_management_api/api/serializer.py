@@ -38,10 +38,10 @@ class Match2Serializer(serializers.ModelSerializer):
     winner = ParticipationSerializer()
 
     class Meta:
-        model = Match4
+        model = Match2
         fields = ['id', 'tournament', 'player1', 'player2', 
                   'player1_score', 'player2_score',  
-                  'winner', 'round', 'order', 'date', 'status']
+                  'winner', 'round', 'order', 'date']
 
 
 class ParticipantSerializer(serializers.ModelSerializer):
