@@ -203,17 +203,17 @@ def create_matches():
     """
 
 
-    execute_sql(matches2_sql, (2, 1, 2, 10, 11, 2, 1, 1, datetime.now(pytz.UTC)))
+"""     execute_sql(matches2_sql, (2, 1, 2, 10, 11, 2, 1, 1, datetime.now(pytz.UTC)))
     execute_sql(matches2_sql, (4, 2, 3, 10, 11, 1, 1, 1, datetime.now(pytz.UTC)))
         
     execute_sql(matches4_sql, (1, 1, 2, 3, 4, 10, 11, 10, 9, 2, 1, 1, datetime.now(pytz.UTC), 1))
     execute_sql(matches4_sql, (3, 1, 2, 4, 5, 10, 11, 10, 9, 1, 1, 1, datetime.now(pytz.UTC), 1))
           
 
-    
+
     print("Created matches for all tournaments")
 
-""" 
+
     for tournament in tournaments:
         tournament_id, tournament_type = tournament
         participants = execute_sql("SELECT id FROM api_participation WHERE tournament_id = %s", (tournament_id,))
@@ -235,7 +235,7 @@ def main():
     create_users()
     create_tournaments()
     create_participations()
-    create_matches()
+
 
 if __name__ == "__main__":
     main()

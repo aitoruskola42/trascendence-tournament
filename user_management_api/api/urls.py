@@ -22,12 +22,14 @@ urlpatterns = [
     path('matches2/<int:pk>/', matches_views.match2_detail, name='match_detail'),
     path('matches2/<int:pk>/start/', matches_views.start2_match, name='start_match'),
     path('matches2/<int:pk>/update_score/', matches_views.update_match2_score, name='update_match_score'),
+    path('matches2/game-results/', matches_views.game2_result, name='game2_result'),
 
     path('matches4/', matches_views.match4_list, name='match_list'),
     path('matches4/<int:pk>/', matches_views.match4_detail, name='match_detail'),
     path('matches4/<int:pk>/start/', matches_views.start4_match, name='start_match'),
     path('matches4/<int:pk>/update_score/', matches_views.update_match4_score, name='update_match_score'),
-
+    path('matches4/game-results/', matches_views.game4_result, name='game4_result'),
+   
     path('tournaments/four-player/create/', tournaments_views.create_four_player_tournament, name='create_four_player_tournament'),
     path('tournaments/four-player/<int:pk>/start/', tournaments_views.start_four_player_tournament, name='start_four_player_tournament'),
     path('tournaments/four-player/match/<int:match_pk>/result/', tournaments_views.record_match4_result, name='record_match4_result'),

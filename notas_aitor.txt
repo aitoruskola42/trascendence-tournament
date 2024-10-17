@@ -55,4 +55,4 @@ docker run -p 8000:80 \
 
 docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' tournament_postgres
 
-172.19.0.2
+172.18.0.2
