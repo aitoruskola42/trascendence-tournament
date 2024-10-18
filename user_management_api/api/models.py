@@ -8,6 +8,42 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
+class Tournament(models.Model):
+    start_date = models.DateTimeField()
+    winner_id = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"Tournament {self.id} - Started on {self.start_date}"
+
+class Match(models.Model):
+    MATCH_TYPES = [
+        ('INDIVIDUAL', 'Partida Individual'),
+        ('SEMIFINAL', 'Semifinal de Torneo'),
+        ('FINAL', 'Final de Torneo'),
+    ]
+
+    match_type = models.CharField(max_length=20, choices=MATCH_TYPES)
+    tournament_id = models.IntegerField(default=0)  # 0 para partidas individuales
+    player1_id = models.IntegerField()
+    player2_id = models.IntegerField()
+    player1_display_name = models.CharField(max_length=100)
+    player2_display_name = models.CharField(max_length=100)
+    player1_score = models.IntegerField(default=0)
+    player2_score = models.IntegerField(default=0)
+    winner_id = models.IntegerField(null=True, blank=True)
+    date = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        if self.tournament_id != 0:
+            return f"{self.get_match_type_display()} - Torneo {self.tournament_id}: {self.player1_display_name} vs {self.player2_display_name}"
+        return f"Partida Individual: {self.player1_display_name} vs {self.player2_display_name}"
+
+    def save(self, *args, **kwargs):
+        if self.match_type == 'INDIVIDUAL':
+            self.tournament_id = 0
+        super().save(*args, **kwargs)
+
 class ApiUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     display_name = models.CharField(max_length=100)
@@ -49,37 +85,4 @@ class ApiUser(models.Model):
         }
 
 
-    class Tournament(models.Model):
-        start_date = models.DateTimeField()
-        winner_id = models.IntegerField(default=0)
-
-        def __str__(self):
-            return f"Tournament {self.id} - Started on {self.start_date}"
-
-    class Match(models.Model):
-        MATCH_TYPES = [
-            ('INDIVIDUAL', 'Partida Individual'),
-            ('SEMIFINAL', 'Semifinal de Torneo'),
-            ('FINAL', 'Final de Torneo'),
-        ]
-
-        match_type = models.CharField(max_length=20, choices=MATCH_TYPES)
-        tournament_id = models.IntegerField(default=0)  # 0 para partidas individuales
-        player1_id = models.IntegerField()
-        player2_id = models.IntegerField()
-        player1_display_name = models.CharField(max_length=100)
-        player2_display_name = models.CharField(max_length=100)
-        winner_id = models.IntegerField(null=True, blank=True)
-        player1_score = models.IntegerField(default=0)
-        player2_score = models.IntegerField(default=0)
-        date = models.DateTimeField(default=timezone.now)
-
-        def __str__(self):
-            if self.tournament_id != 0:
-                return f"{self.get_match_type_display()} - Torneo {self.tournament_id}: {self.player1_display_name} vs {self.player2_display_name}"
-            return f"Partida Individual: {self.player1_display_name} vs {self.player2_display_name}"
-
-        def save(self, *args, **kwargs):
-            if self.match_type == 'INDIVIDUAL':
-                self.tournament_id = 0
-            super().save(*args, **kwargs)
+  

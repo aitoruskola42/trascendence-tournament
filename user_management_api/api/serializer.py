@@ -5,163 +5,46 @@ from django.contrib.auth.models import User as DjangoUser  # Django's built-in U
 # Django Rest Framework imports
 from rest_framework import serializers  # Serialization framework for REST APIs
 
-# Local imports
-from .models import ApiUser  # Custom User models
-from .models import Tournament, Participation, ApiUser, Match4, Match2
+
+from .models import Tournament, ApiUser, Match
 User = get_user_model()  # Get the active User model
 
-class ParticipationSerializer(serializers.ModelSerializer):
-    user_id = serializers.IntegerField(source='user.id')
-    display_name = serializers.CharField(source='user.display_name')
+class MatchSerializer(serializers.ModelSerializer):
+    match_type_display = serializers.CharField(source='get_match_type_display', read_only=True)
 
     class Meta:
-        model = Participation
-        fields = ['id', 'user_id', 'display_name', 'score']
-
-class Match4Serializer(serializers.ModelSerializer):
-    player1 = ParticipationSerializer()
-    player2 = ParticipationSerializer()
-    player3 = ParticipationSerializer()
-    player4 = ParticipationSerializer()
-    winner = ParticipationSerializer()
-
-    class Meta:
-        model = Match4
-        fields = ['id', 'tournament', 'player1', 'player2', 'player3', 'player4', 
-                  'player1_score', 'player2_score', 'player3_score', 'player4_score', 
-                  'winner', 'round', 'order', 'date', 'status']
-
-
-class Match2Serializer(serializers.ModelSerializer):
-    player1 = ParticipationSerializer()
-    player2 = ParticipationSerializer()
-    winner = ParticipationSerializer()
-
-    class Meta:
-        model = Match2
-        fields = ['id', 'tournament', 'player1', 'player2', 
-                  'player1_score', 'player2_score',  
-                  'winner', 'round', 'order', 'date']
-
-
-class ParticipantSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='user.id')
-  #  display_name = serializers.CharField(source='user.display_name')
-
-    class Meta:
-        model = Participation
-        fields = ['id', 'display_name', 'score']
-
-
-
-
-
-class TournamentOpenSerializer(serializers.ModelSerializer):
-    participants = serializers.SerializerMethodField()
-    current_participants = serializers.SerializerMethodField()
-    can_start = serializers.SerializerMethodField()
-    creator = serializers.IntegerField(read_only=True)
-
-    class Meta:
-        model = Tournament
-        fields = ['id', 'name', 'start_date', 'status', 'tournament_type', 'creator', 'max_participants', 'participants', 'current_participants', 'can_start']
-
-    def get_participants(self, obj):
-        participations = Participation.objects.filter(tournament=obj.id)
-        return ParticipantSerializer(participations, many=True).data
-
-    def get_current_participants(self, obj):
-        return Participation.objects.filter(tournament=obj.id).count()
-
-    def get_can_start(self, obj):
-        return obj.status == 'REGISTRATION' and self.get_current_participants(obj) >= 2
-
-
-    def create(self, validated_data):
-        creator_id = self.context['request'].user.apiuser.id
-        tournament = Tournament.objects.create(creator=creator_id, **validated_data)
-        display_name = self.context['request'].user.apiuser.display_name
-        # Crear la participación para el creador del torneo
-        Participation.objects.create(
-            user=self.context['request'].user.apiuser,
-            tournament=tournament,
-            score=0,
-            display_name=display_name,
-        )
-
-        return tournament
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data['creator'] = instance.creator  # Asegúrate de que el creator se incluya en la representación
+        model = Match
+        fields = [
+            'id',
+            'match_type',
+            'match_type_display',
+            'tournament_id',
+            'player1_id',
+            'player2_id',
+            'player1_display_name',
+            'player2_display_name',
+            'player1_score',
+            'player2_score',
+            'winner_id',
+            'date'
+        ]
+    
+    def validate(self, data):
+        if data.get('match_type') == 'INDIVIDUAL' and data.get('tournament_id') != 0:
+            raise serializers.ValidationError("Las partidas individuales deben tener tournament_id igual a 0.")
         return data
 
-class TournamentSerializer(serializers.ModelSerializer):
-    participants = serializers.SerializerMethodField()
-    current_participants = serializers.SerializerMethodField()
-    can_start = serializers.SerializerMethodField()
-    creator = serializers.IntegerField(read_only=True)
-
-    class Meta:
-        model = Tournament
-        fields = ['id', 'name', 'start_date', 'status', 'tournament_type', 'creator', 'max_participants', 'participants', 'current_participants', 'can_start']
-
-    def get_participants(self, obj):
-        participations = Participation.objects.filter(tournament=obj.id)
-        return ParticipantSerializer(participations, many=True).data
-
-    def get_current_participants(self, obj):
-        return Participation.objects.filter(tournament=obj.id).count()
-
-    def get_can_start(self, obj):
-        return obj.status == 'REGISTRATION' and self.get_current_participants(obj) >= 2
-
-
     def create(self, validated_data):
-        creator_id = self.context['request'].user.apiuser.id
-        tournament = Tournament.objects.create(creator=creator_id, **validated_data)
-        display_name = self.context['request'].user.apiuser.display_name
-        # Crear la participación para el creador del torneo
-        Participation.objects.create(
-            user=self.context['request'].user.apiuser,
-            tournament=tournament,
-            score=0,
-            display_name=display_name,
-        )
+        if validated_data.get('match_type') == 'INDIVIDUAL':
+            validated_data['tournament_id'] = 0
+        return super().create(validated_data)
 
-        return tournament
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data['creator'] = instance.creator  # Asegúrate de que el creator se incluya en la representación
-        return data
-
-class MatchDetail4Serializer(serializers.ModelSerializer):
-    player1 = ParticipantSerializer(read_only=True)
-    player2 = ParticipantSerializer(read_only=True)
-    player3 = ParticipantSerializer(read_only=True)
-    player4 = ParticipantSerializer(read_only=True)
-    winner = ParticipantSerializer(read_only=True)
-    tournament = TournamentSerializer(read_only=True)
-
-    class Meta:
-        model = Match4
-        fields = ['id', 'tournament', 'player1', 'player2', 'player3', 'player4', 
-                  'player1_score', 'player2_score', 'player3_score', 'player4_score', 
-                  'winner', 'round', 'order', 'date', 'status']
+    def update(self, instance, validated_data):
+        if validated_data.get('match_type') == 'INDIVIDUAL':
+            validated_data['tournament_id'] = 0
+        return super().update(instance, validated_data)
 
 
-class MatchDetail2Serializer(serializers.ModelSerializer):
-    player1 = ParticipantSerializer(read_only=True)
-    player2 = ParticipantSerializer(read_only=True)
-    winner = ParticipantSerializer(read_only=True)
-    tournament = TournamentSerializer(read_only=True)
-
-    class Meta:
-        model = Match4
-        fields = ['id', 'tournament', 'player1', 'player2', 
-                  'player1_score', 'player2_score',  
-                  'winner', 'round', 'order', 'date', 'status']
 
 
 

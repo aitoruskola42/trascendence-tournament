@@ -26,20 +26,11 @@ import logging  # Logging facility for Python
 
 # Local imports
 from ..models import ApiUser  # Custom User and ApiUser models
-from ..serializer import UserSerializer, ApiUserSerializer, TournamentSerializer  # Serializers for User and ApiUser models
+from ..serializer import UserSerializer, ApiUserSerializer, MatchSerializer  # Serializers for User and ApiUser models
 
 logger = logging.getLogger(__name__)  # Creates a logger instance for this module
 logging.basicConfig(filename='myapp.log', level=logging.DEBUG)  # Configures basic logging to a file
 
-
-def get_participations_by_user_id(user_id):
-    try:
-        # Obtén la instancia de ApiUser usando el ID del usuario
-        api_user = ApiUser.objects.get(user__id=user_id)  # Aquí se usa el ID del modelo User
-        participations = Participation.objects.filter(user=api_user)  # Filtra participaciones usando la instancia de ApiUser
-        return participations
-    except ApiUser.DoesNotExist:
-        return None  # Maneja el caso donde el ApiUser no existe
 
 
 
@@ -51,7 +42,7 @@ def check_token(request):
         # Obtener el token del usuario autenticado
         token = request.auth
 
-        if not isinstance(token, AccessToken):
+        if not isinstance(token, accessToken):
             return Response({"error": "Token no válido"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Preparar la respuesta
@@ -70,16 +61,6 @@ def check_token(request):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         
-@api_view(['GET'])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
-def get_user_participations(request, user_id):
-    participations = get_participations_by_user_id(user_id)
-    if participations is not None:
-        # Serializa y devuelve las participaciones
-        serializer = ParticipationSerializer(participations, many=True)
-        return Response(serializer.data)
-    return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['GET'])

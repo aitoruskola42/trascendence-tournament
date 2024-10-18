@@ -15,46 +15,11 @@ from django.urls import path
 
 
 urlpatterns = [
-
-
     path('users/check-token/', user_views.check_token, name='check_token'),
-    path('matches2/', matches_views.match2_list, name='match_list'),
-    path('matches2/<int:pk>/', matches_views.match2_detail, name='match_detail'),
-    path('matches2/<int:pk>/start/', matches_views.start2_match, name='start_match'),
-    path('matches2/<int:pk>/update_score/', matches_views.update_match2_score, name='update_match_score'),
-    path('matches2/game-results/', matches_views.game2_result, name='game2_result'),
-
-    path('matches4/', matches_views.match4_list, name='match_list'),
-    path('matches4/<int:pk>/', matches_views.match4_detail, name='match_detail'),
-    path('matches4/<int:pk>/start/', matches_views.start4_match, name='start_match'),
-    path('matches4/<int:pk>/update_score/', matches_views.update_match4_score, name='update_match_score'),
-    path('matches4/game-results/', matches_views.game4_result, name='game4_result'),
-   
-    path('tournaments/four-player/create/', tournaments_views.create_four_player_tournament, name='create_four_player_tournament'),
-    path('tournaments/four-player/<int:pk>/start/', tournaments_views.start_four_player_tournament, name='start_four_player_tournament'),
-    path('tournaments/four-player/match/<int:match_pk>/result/', tournaments_views.record_match4_result, name='record_match4_result'),
-    path('tournaments/four-player/<int:tournament_pk>/matches/', tournaments_views.get_four_player_matches, name='get_four_player_matches'),
-
-    # Rutas para torneos regulares
-    path('tournaments/ready/', tournaments_views.tournament_ready_list, name='tournament_ready_list'),
-    path('tournaments/open/', tournaments_views.tournament_open_list, name='tournament_open_list'),
-    path('tournaments/', tournaments_views.tournament_list, name='tournament_list'),
-    path('tournaments/user/', tournaments_views.user_tournaments, name='user_tournaments'),
-    path('tournaments/creator/<int:creator_id>/', tournaments_views.get_creator_info, name='get_creator_info'),
-    path('tournaments/create/', tournaments_views.create_tournament, name='create_tournament'),
-    path('tournaments/<int:pk>/', tournaments_views.tournament_detail, name='tournament_detail'),
-    path('tournaments/<int:pk>/join/', tournaments_views.join_tournament, name='join_tournament'),
-    path('tournaments/<int:pk>/start/', tournaments_views.start_tournament, name='start_tournament'),
-    path('tournaments/<int:pk>/end/', tournaments_views.end_tournament, name='end_tournament'),
-
-    # Rutas para partidas 1 vs 1
-    path('one-vs-one/create/', tournaments_views.create_one_vs_one_match, name='create_one_vs_one_match'),
-    path('one-vs-one/', tournaments_views.get_one_vs_one_matches, name='get_one_vs_one_matches'),
-]
+    path('matches2/game-results/', matches_views.game_result, name='game_result'),
+    path('matches/', matches_views.match_list, name='match_list'),
 
 
-
-urlpatterns += [
     path('users/check-token/', user_views.check_token, name='check_token'),    
     path("users/", user_views.get_users, name="get_users"),
     path("users/<int:pk>/", user_views.get_user, name="get_user"),
@@ -98,7 +63,6 @@ urlpatterns += [
     path('friends/add_friends_wait/', friends_views.add_friends_wait, name='add_friends_wait'),
     path('friends/add_friends_request/', friends_views.add_friends_request, name='add_friends_request'),
     path('friends/remove-request/<int:friend_id>/', friends_views.remove_request, name='remove_request'),
-    path('users/<int:user_id>/participations/', user_views.get_user_participations, name='get_user_participations'),
-    path('users/<int:user_id>/tournaments/', user_views.user_tournaments, name='user_tournaments'),
+
 ]
 
