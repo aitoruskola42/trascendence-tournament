@@ -8,7 +8,6 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-
 class ApiUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     display_name = models.CharField(max_length=100)
@@ -50,129 +49,37 @@ class ApiUser(models.Model):
         }
 
 
-class Tournament(models.Model):
-    name = models.CharField(max_length=100)
-    start_date = models.DateTimeField()
-    status = models.CharField(max_length=20, choices=[
-        ('REGISTRATION', 'Registration'),
-        ('IN_PROGRESS', 'In Progress'),
-        ('FINISHED', 'Finished')
-    ], default='REGISTRATION')
-    tournament_type = models.CharField(max_length=20)
-    creator = models.IntegerField(default=0)
-    max_participants = models.IntegerField(default=0)
-    # No necesitamos definir 'participants' aquí, ya que está definido en ApiUser
+    class Tournament(models.Model):
+        start_date = models.DateTimeField()
+        winner_id = models.IntegerField(default=0)
 
-    def __str__(self):
-        return self.name
+        def __str__(self):
+            return f"Tournament {self.id} - Started on {self.start_date}"
 
-    @classmethod
-    def get_or_create_one_vs_one_tournament(cls):
-        one_vs_one, created = cls.objects.get_or_create(
-            tournament_type='ONE_VS_ONE',
-            defaults={
-                'name': '1 vs 1 Matches',
-                'status': 'ALWAYS_OPEN',
-                'creator': DjangoUser.objects.get(username='admin')
-            }
-        )
-        return one_vs_one
-
-
-class Participation(models.Model):
-    user = models.ForeignKey(ApiUser, on_delete=models.CASCADE)
-    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
-    score = models.IntegerField(default=0)
-    display_name = models.CharField(max_length=200, blank=True, null=True)    
-
-    class Meta:
-        unique_together = ['tournament', 'user']
-
-    def __str__(self):
-        return f"{self.user.display_name} in {self.tournament.name}"
-
-
-
-
-class Match2(models.Model):
-    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='matches_2_players')
-    player1 = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name='matches_2p_player1')
-    player2 = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name='matches_2p_player2')
-    player1_score = models.IntegerField(default=0)
-    player2_score = models.IntegerField(default=0)
-    winner = models.ForeignKey(Participation, on_delete=models.SET_NULL, null=True, related_name='matches_2p_won')
-    round = models.IntegerField(default=1)
-    order = models.IntegerField()
-    date = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['date']
-
-    def __str__(self):
-        return f"{self.player1.display_name} vs {self.player2.display_name} - {self.tournament.name}"
-
-    @classmethod
-    def create_one_vs_one_match(cls, player1, player2):
-        one_vs_one_tournament = Tournament.get_or_create_one_vs_one_tournament()
-        return cls.objects.create(
-            tournament=one_vs_one_tournament,
-            player1=player1,
-            player2=player2,
-            round='FINAL',
-            order=1
-        )
-
-
-
-class Match4(models.Model):
-    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='matches_4_players')
-    player1 = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name='matches_4p_player1')
-    player2 = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name='matches_4p_player2')
-    player3 = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name='matches_4p_player3')
-    player4 = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name='matches_4p_player4')
-    player1_score = models.IntegerField(default=0)
-    player2_score = models.IntegerField(default=0)
-    player3_score = models.IntegerField(default=0)
-    player4_score = models.IntegerField(default=0)
-    winner = models.ForeignKey(Participation, on_delete=models.SET_NULL, null=True, related_name='matches_4p_won')
-    round = models.IntegerField(default=1)
-    order = models.IntegerField()
-    date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=[
-        ('PENDING', 'Pending'),
-        ('IN_PROGRESS', 'In Progress'),
-        ('FINISHED', 'Finished')
-    ], default='PENDING')
-
-    class Meta:
-        ordering = ['date']
-
-    def __str__(self):
-        return f"{self.player1.display_name} vs {self.player2.display_name} vs {self.player3.display_name} vs {self.player4.display_name} - {self.tournament.name}"
-
-    @classmethod
-    def create_four_player_match(cls, tournament, player1, player2, player3, player4, round_num, order):
-        return cls.objects.create(
-            tournament=tournament,
-            player1=player1,
-            player2=player2,
-            player3=player3,
-            player4=player4,
-            round=round_num,
-            order=order
-        )
-    
-
-    def is_finished(self):
-        # Implementa la lógica para determinar si el partido ha terminado
-        # Por ejemplo, si algún jugador ha alcanzado cierta puntuación
-        return max(self.player1_score, self.player2_score, self.player3_score, self.player4_score) >= 10
-
-    def determine_winner(self):
-        scores = [
-            (self.player1, self.player1_score),
-            (self.player2, self.player2_score),
-            (self.player3, self.player3_score),
-            (self.player4, self.player4_score)
+    class Match(models.Model):
+        MATCH_TYPES = [
+            ('INDIVIDUAL', 'Partida Individual'),
+            ('SEMIFINAL', 'Semifinal de Torneo'),
+            ('FINAL', 'Final de Torneo'),
         ]
-        self.winner = max(scores, key=lambda x: x[1])[0]
+
+        match_type = models.CharField(max_length=20, choices=MATCH_TYPES)
+        tournament_id = models.IntegerField(default=0)  # 0 para partidas individuales
+        player1_id = models.IntegerField()
+        player2_id = models.IntegerField()
+        player1_display_name = models.CharField(max_length=100)
+        player2_display_name = models.CharField(max_length=100)
+        winner_id = models.IntegerField(null=True, blank=True)
+        player1_score = models.IntegerField(default=0)
+        player2_score = models.IntegerField(default=0)
+        date = models.DateTimeField(default=timezone.now)
+
+        def __str__(self):
+            if self.tournament_id != 0:
+                return f"{self.get_match_type_display()} - Torneo {self.tournament_id}: {self.player1_display_name} vs {self.player2_display_name}"
+            return f"Partida Individual: {self.player1_display_name} vs {self.player2_display_name}"
+
+        def save(self, *args, **kwargs):
+            if self.match_type == 'INDIVIDUAL':
+                self.tournament_id = 0
+            super().save(*args, **kwargs)
