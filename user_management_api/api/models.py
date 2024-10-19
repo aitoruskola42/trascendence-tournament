@@ -18,9 +18,9 @@ class Tournament(models.Model):
 
 class Match(models.Model):
     MATCH_TYPES = [
-        ('INDIVIDUAL', 'Partida Individual'),
-        ('SEMIFINAL', 'Semifinal de Torneo'),
-        ('FINAL', 'Final de Torneo'),
+        ('INDIVIDUAL', 'INDIVIDUAL'),
+        ('SEMIFINAL', 'SEMIFINAL'),
+        ('FINAL', 'FINAL'),
     ]
 
     match_type = models.CharField(max_length=20, choices=MATCH_TYPES)

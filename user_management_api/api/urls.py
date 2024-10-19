@@ -18,8 +18,9 @@ urlpatterns = [
     path('users/check-token/', user_views.check_token, name='check_token'),
     path('matches2/game-results/', matches_views.game_result, name='game_result'),
     path('matches/', matches_views.match_list, name='match_list'),
-
-
+    path('matches/<int:pk>/', matches_views.match_list_id, name='match_list_id'),
+    path('matches4/', matches_views.match4_list, name='match4_list'),
+    path('matches4/<int:pk>/', matches_views.match4_list_id, name='match4_list_id'),
     path('users/check-token/', user_views.check_token, name='check_token'),    
     path("users/", user_views.get_users, name="get_users"),
     path("users/<int:pk>/", user_views.get_user, name="get_user"),
