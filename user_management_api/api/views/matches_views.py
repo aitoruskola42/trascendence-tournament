@@ -15,10 +15,13 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
+from django.db.models import Q
 
 
 from datetime import datetime, timedelta
 import pytz
+
+
 
 
 @api_view(['GET'])
@@ -28,6 +31,44 @@ def match_list(request):
     matches = Match.objects.all()
     serializer = MatchSerializer(matches, many=True)
     return Response(serializer.data)
+
+@api_view(['GET'])
+def match4_list(request):
+    logger.debug(f"User: {request.user}")
+    logger.debug(f"Auth: {request.auth}")
+    matches = Match.objects.all()
+    serializer = MatchSerializer(matches, many=True)
+    return Response(serializer.data)
+
+
+
+@api_view(['GET'])
+def match_list_id(request, pk):
+    logger.debug(f"User: {request.user}")
+    logger.debug(f"Auth: {request.auth}")
+
+    matches = Match.objects.filter(
+        (Q(player1_id=pk) | Q(player2_id=pk)) &
+        (Q(match_type='INDIVIDUAL') )
+    )
+    serializer = MatchSerializer(matches, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+def match4_list_id(request, pk):
+    logger.debug(f"User: {request.user}")
+    logger.debug(f"Auth: {request.auth}")
+
+    matches = Match.objects.filter(
+        (Q(player1_id=pk) | Q(player2_id=pk)) &
+        (Q(match_type='SEMIFINAL') | Q(match_type='FINAL'))
+    )
+
+    serializer = MatchSerializer(matches, many=True)
+    return Response(serializer.data)
+
+
 
 # Función auxiliar para ejecutar SQL
 def execute_sql(sql, params=None):
