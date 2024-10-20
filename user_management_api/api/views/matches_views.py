@@ -16,10 +16,78 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
 from django.db.models import Q
-
+from django.utils import timezone
 
 from datetime import datetime, timedelta
 import pytz
+
+
+
+@csrf_exempt
+def tournament_status(request, tournament_id):
+    if request.method == 'GET':
+        try:
+            tournament = Tournament.objects.get(id=tournament_id)
+            semifinal_matches = Match.objects.filter(tournament_id=tournament_id, match_type='SEMIFINAL')
+            semifinals_completed = semifinal_matches.count() == 2 and all(match.winner_id for match in semifinal_matches)
+            
+            return JsonResponse({
+                "status": "success",
+                "tournament_id": tournament_id,
+                "semifinals_completed": semifinals_completed
+            })
+        except Tournament.DoesNotExist:
+            return JsonResponse({"status": "error", "message": "Torneo no encontrado"}, status=404)
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
+    return JsonResponse({"status": "error", "message": "Método no permitido"}, status=405)
+
+@csrf_exempt
+def semifinal_winners(request, tournament_id):
+    if request.method == 'GET':
+        try:
+            semifinal_matches = Match.objects.filter(tournament_id=tournament_id, match_type='SEMIFINAL')
+            winners = [match.winner_id for match in semifinal_matches if match.winner_id]
+            
+            return JsonResponse({
+                "status": "success",
+                "tournament_id": tournament_id,
+                "winners": winners
+            })
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
+    return JsonResponse({"status": "error", "message": "Método no permitido"}, status=405)
+
+@csrf_exempt
+def end_tournament(request, tournament_id):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            winner_id = data.get('winner_id')
+            
+            if not winner_id:
+                return JsonResponse({"status": "error", "message": "winner_id es requerido"}, status=400)
+            
+            tournament = Tournament.objects.get(id=tournament_id)
+            tournament.winner_id = winner_id
+            tournament.save()
+            
+            return JsonResponse({
+                "status": "success",
+                "message": "Torneo finalizado exitosamente",
+                "tournament_id": tournament_id,
+                "winner_id": winner_id
+            })
+        except Tournament.DoesNotExist:
+            return JsonResponse({"status": "error", "message": "Torneo no encontrado"}, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({"status": "error", "message": "Datos JSON inválidos"}, status=400)
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
+    return JsonResponse({"status": "error", "message": "Método no permitido"}, status=405)
 
 
 
@@ -83,6 +151,35 @@ def execute_sql(sql, params=None):
             return cursor.fetchall()
 
 logger = logging.getLogger(__name__)  # Creates a logger instance for this module
+
+
+@csrf_exempt
+def register_tournament(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            start_date = data.get('start_date')
+            
+            if not start_date:
+                return JsonResponse({"status": "error", "message": "La fecha de inicio es requerida"}, status=400)
+            
+            tournament = Tournament.objects.create(
+                start_date=timezone.datetime.fromisoformat(start_date),
+                winner_id=data.get('winner_id', 0)  # Por defecto 0 si no se proporciona
+            )
+            
+            return JsonResponse({
+                "status": "success",
+                "message": "Torneo registrado exitosamente",
+                "tournament_id": tournament.id
+            })
+        
+        except json.JSONDecodeError:
+            return JsonResponse({"status": "error", "message": "Datos JSON inválidos"}, status=400)
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
+    return JsonResponse({"status": "error", "message": "Método no permitido"}, status=405)
 
 @csrf_exempt
 def game_result(request):

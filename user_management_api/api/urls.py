@@ -16,7 +16,13 @@ from django.urls import path
 
 urlpatterns = [
     path('users/check-token/', user_views.check_token, name='check_token'),
+    path('matches2/register-tournament/', matches_views.register_tournament, name='register_tournament'),
     path('matches2/game-results/', matches_views.game_result, name='game_result'),
+
+    path('matches2/tournament-status/<int:tournament_id>/', matches_views.tournament_status, name='tournament_status'),
+    path('matches2/semifinal-winners/<int:tournament_id>/', matches_views.semifinal_winners, name='semifinal_winners'),
+    path('matches2/end-tournament/<int:tournament_id>/', matches_views.end_tournament, name='end_tournament'),
+
     path('matches/', matches_views.match_list, name='match_list'),
     path('matches/<int:pk>/', matches_views.match_list_id, name='match_list_id'),
     path('matches4/', matches_views.match4_list, name='match4_list'),
