@@ -1,3 +1,8 @@
+http://localhost:60000/api/matches/2/
+http://localhost:60000/api/matches4/2/
+http://localhost:60000/api/matches2/stats_view/2/
+
+
 si docker empieza a estar tonto.
     sudo systemctl restart docker
 

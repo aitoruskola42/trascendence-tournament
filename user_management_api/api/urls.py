@@ -18,7 +18,9 @@ urlpatterns = [
     path('users/check-token/', user_views.check_token, name='check_token'),
     path('matches2/register-tournament/', matches_views.register_tournament, name='register_tournament'),
     path('matches2/game-results/', matches_views.game_result, name='game_result'),
-
+    path('matches4/<int:pk>/', matches_views.match4_list_id, name='match4_list_id'),
+    path('matches/<int:pk>/', matches_views.match_list_id, name='match_list_id'),
+        
     path('matches2/tournament-status/<int:tournament_id>/', matches_views.tournament_status, name='tournament_status'),
     path('matches2/semifinal-winners/<int:tournament_id>/', matches_views.semifinal_winners, name='semifinal_winners'),
     path('matches2/end-tournament/<int:tournament_id>/', matches_views.end_tournament, name='end_tournament'),
@@ -26,9 +28,9 @@ urlpatterns = [
     path('matches2/stats_view/<int:user_id>/', matches_views.stats_view, name='stats_view'),
 
     path('matches/', matches_views.match_list, name='match_list'),
-    path('matches/<int:pk>/', matches_views.match_list_id, name='match_list_id'),
+
     path('matches4/', matches_views.match4_list, name='match4_list'),
-    path('matches4/<int:pk>/', matches_views.match4_list_id, name='match4_list_id'),
+
     path('users/check-token/', user_views.check_token, name='check_token'),    
     path("users/", user_views.get_users, name="get_users"),
     path("users/<int:pk>/", user_views.get_user, name="get_user"),
