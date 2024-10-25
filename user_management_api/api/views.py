@@ -27,20 +27,3 @@ import requests  # HTTP library for making requests
 from .models import User, ApiUser  # Custom User and ApiUser models
 from .serializer import UserSerializer, ApiUserSerializer  # Serializers for User and ApiUser models
 
-@api_view(['POST'])
-def login_user(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
-
-    user = authenticate(username=username, password=password)
-    
-    if user:
-        refresh = RefreshToken.for_user(user)
-        return Response({
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-            'user_id': user.pk,
-            'username': user.username,
-            'aitor': 'hola'
-        })
-    return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
