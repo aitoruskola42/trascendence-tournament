@@ -1,28 +1,26 @@
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db import models  # Añade esta línea
-from ..models import Match, Tournament
+from ..models import Match
 from ..serializer import MatchSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse  # Provides a JSON-formatted HTTP response
 import json  # Provides JSON encoding and decoding functionality
 import logging
 from django.db import connection
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.decorators import permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
+from rest_framework.decorators import api_view
+
 from django.db.models import Q
 from django.utils import timezone
 
 from datetime import datetime, timedelta
 import pytz
-
-
-
 
 
 def stats_view(request, user_id):
@@ -64,25 +62,7 @@ def stats_view(request, user_id):
 
     return JsonResponse(stats)
 
-@csrf_exempt
-def tournament_status(request, tournament_id):
-    if request.method == 'GET':
-        try:
-            tournament = Tournament.objects.get(id=tournament_id)
-            semifinal_matches = Match.objects.filter(tournament_id=tournament_id, match_type='SEMIFINAL')
-            semifinals_completed = semifinal_matches.count() == 2 and all(match.winner_id for match in semifinal_matches)
-            
-            return JsonResponse({
-                "status": "success",
-                "tournament_id": tournament_id,
-                "semifinals_completed": semifinals_completed
-            })
-        except Tournament.DoesNotExist:
-            return JsonResponse({"status": "error", "message": "Torneo no encontrado"}, status=404)
-        except Exception as e:
-            return JsonResponse({"status": "error", "message": str(e)}, status=500)
-    
-    return JsonResponse({"status": "error", "message": "Método no permitido"}, status=405)
+
 
 @csrf_exempt
 def semifinal_winners(request, tournament_id):
@@ -130,32 +110,20 @@ def end_tournament(request, tournament_id):
     
     return JsonResponse({"status": "error", "message": "Método no permitido"}, status=405)
 
-
-
-
 @api_view(['GET'])
 def match_list(request):
-    logger.debug(f"User: {request.user}")
-    logger.debug(f"Auth: {request.auth}")
     matches = Match.objects.all()
     serializer = MatchSerializer(matches, many=True)
     return Response(serializer.data)
 
 @api_view(['GET'])
 def match4_list(request):
-    logger.debug(f"User: {request.user}")
-    logger.debug(f"Auth: {request.auth}")
     matches = Match.objects.all()
     serializer = MatchSerializer(matches, many=True)
     return Response(serializer.data)
 
-
-
 @api_view(['GET'])
 def match_list_id(request, pk):
-    logger.debug(f"User: {request.user}")
-    logger.debug(f"Auth: {request.auth}")
-
     matches = Match.objects.filter(
         (Q(player1_id=pk) | Q(player2_id=pk)) &
         (Q(match_type='INDIVIDUAL') )
@@ -163,17 +131,12 @@ def match_list_id(request, pk):
     serializer = MatchSerializer(matches, many=True)
     return Response(serializer.data)
 
-
 @api_view(['GET'])
 def match4_list_id(request, pk):
-    logger.debug(f"User: {request.user}")
-    logger.debug(f"Auth: {request.auth}")
-
     matches = Match.objects.filter(
         (Q(player1_id=pk) | Q(player2_id=pk)) &
         (Q(match_type='SEMIFINAL') | Q(match_type='FINAL'))
     )
-
     serializer = MatchSerializer(matches, many=True)
     return Response(serializer.data)
 
@@ -192,7 +155,6 @@ def execute_sql(sql, params=None):
             return cursor.fetchall()
 
 logger = logging.getLogger(__name__)  # Creates a logger instance for this module
-
 
 @csrf_exempt
 def register_tournament(request):
