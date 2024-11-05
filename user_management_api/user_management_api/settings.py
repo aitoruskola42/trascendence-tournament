@@ -186,8 +186,8 @@ DATABASES = {
         'NAME': 'api-db',
         'USER': 'root',
         'PASSWORD': 'root',
-        'HOST': 'tournament_postgres',
-        'PORT': '5555',
+        'HOST': 'match_history_db',
+        'PORT': '5432',
     }
 	
     # 'default': {
