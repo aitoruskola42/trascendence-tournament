@@ -10,14 +10,15 @@ class Command(BaseCommand):
 	def handle(self, *args, **kwargs):
 		connection = pika.BlockingConnection(
             pika.ConnectionParameters(
-                host='match_history_rabbitmq',
+                host=os.getenv("RABBITMQ_HOST"),
                 credentials=pika.PlainCredentials(
                     os.getenv("RABBITMQ_DEFAULT_USER"),
                     os.getenv("RABBITMQ_DEFAULT_PASS"))
             )
         )
 		channel = connection.channel()
-		channel.queue_declare(queue='match_results')
+		match_history_queue = os.getenv("RABBITMQ_PONG_MATCH_QUEUE")
+		channel.queue_declare(queue=match_history_queue)
 
 		def callback(ch, method, properties, body):
 			data = json.loads(body)
@@ -35,7 +36,7 @@ class Command(BaseCommand):
 			)
 
 		channel.basic_consume(
-			queue='match_results',
+			queue=match_history_queue,
 			on_message_callback=callback,
 			auto_ack=True
 		)
