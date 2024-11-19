@@ -1,13 +1,6 @@
-# Django imports
-from django.contrib.auth import login, get_user_model, authenticate  # Authentication functions
-from django.contrib.auth.models import User as DjangoUser  # Django's built-in User model
-
-# Django Rest Framework imports
 from rest_framework import serializers  # Serialization framework for REST APIs
 
-
 from .models import Match
-User = get_user_model()  # Get the active User model
 
 class MatchSerializer(serializers.ModelSerializer):
     match_type_display = serializers.CharField(source='get_match_type_display', read_only=True)
