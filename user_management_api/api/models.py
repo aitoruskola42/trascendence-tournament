@@ -1,12 +1,6 @@
 from django.db import models
-from django.contrib.auth.models import User as DjangoUser
 from django.utils import timezone
-from django.db.models.signals import post_migrate, post_save
-from django.dispatch import receiver
 from django.db import models
-from django.contrib.auth import get_user_model
-
-
 
 class Match(models.Model):
     MATCH_TYPES = [
