@@ -1,10 +1,12 @@
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes  # Decorators for API views
+from rest_framework_simplejwt.authentication import JWTAuthentication  # JWT authentication backend
 
 from . import views_match_history
 
 @api_view(['GET'])
+@authentication_classes([JWTAuthentication])
 def stats_view(request, user_id):
     try:
         return views_match_history.stats_view(request, user_id)
@@ -12,6 +14,7 @@ def stats_view(request, user_id):
         return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
+@authentication_classes([JWTAuthentication])
 def match_list_id(request, pk):
     try:
         return views_match_history.match_list_id(request, pk)
@@ -19,6 +22,7 @@ def match_list_id(request, pk):
         return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
+@authentication_classes([JWTAuthentication])
 def match4_list_id(request, pk):
     try:
         return views_match_history.match4_list_id(request, pk)
