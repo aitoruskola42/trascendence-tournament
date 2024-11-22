@@ -1,8 +1,5 @@
-# Django imports
-from django.urls import path  # Used for URL routing
-
-# Local imports
-from . import views  # Various view modules
+from django.urls import path  
+from . import views  
 
 urlpatterns = [
     path('matches4/<int:pk>/', views.match4_list_id, name='match4_list_id'),

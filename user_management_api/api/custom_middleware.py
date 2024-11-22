@@ -1,5 +1,5 @@
-import json  # Provides JSON encoding and decoding functionality
-from django.utils.deprecation import MiddlewareMixin  # Base class for writing custom middleware in Django
+import json 
+from django.utils.deprecation import MiddlewareMixin 
 
 class TokenRequestPrintMiddleware(MiddlewareMixin):
     def process_view(self, request, view_func, view_args, view_kwargs):
