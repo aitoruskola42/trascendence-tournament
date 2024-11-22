@@ -6,7 +6,6 @@ from .models import Match
 from .serializer import MatchSerializer
 
 def stats_view(request, user_id):
-    # Partidas individuales
     individual_matches = Match.objects.filter(
         Q(player1_id=user_id) | Q(player2_id=user_id),
         match_type='INDIVIDUAL',
@@ -14,16 +13,12 @@ def stats_view(request, user_id):
     )
     individual_played = individual_matches.count()
     individual_won = individual_matches.filter(winner_id=user_id).count()
-
-    # Partidas de torneo
     tournament_matches = Match.objects.filter(
         Q(player1_id=user_id) | Q(player2_id=user_id),
         tournament_id__gt=0
     )
     tournaments_played = tournament_matches.filter(match_type='SEMIFINAL').count()
     tournaments_won = tournament_matches.filter(match_type='FINAL', winner_id=user_id).count()
-
-    # Total de partidas
     total_played = individual_played + tournaments_played
     total_won = individual_won + tournaments_won
 

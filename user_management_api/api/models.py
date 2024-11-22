@@ -10,7 +10,7 @@ class Match(models.Model):
     ]
 
     match_type = models.CharField(max_length=20, choices=MATCH_TYPES)
-    tournament_id = models.IntegerField(default=0)  # 0 para partidas individuales
+    tournament_id = models.IntegerField(default=0)  
     player1_id = models.IntegerField()
     player2_id = models.IntegerField()
     player1_display_name = models.CharField(max_length=100)
