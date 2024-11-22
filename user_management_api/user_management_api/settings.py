@@ -19,9 +19,6 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 # BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-LOGIN_URL = 'http://127.0.0.1:5500'
-LOGIN_REDIRECT_URL = 'http://127.0.0.1:5500'
-LOGOUT_REDIRECT_URL = 'http://127.0.0.1:5500'
 LOG_FILE = os.path.join(BASE_DIR, 'debug.log')
 
 # Quick-start development settings - unsuitable for production
@@ -31,7 +28,7 @@ LOG_FILE = os.path.join(BASE_DIR, 'debug.log')
 #SECRET_KEY = 'django-insecure-48&#qaq7ol3_s&*f%^#v5@+9@3k9-)dyj1%)hhk*6cd%6_k*#1'
 
 #Este es el token que hay que compartir con los otros dockers.
-SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'en la playa se esta mejor que aqui')
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -87,7 +84,6 @@ INSTALLED_APPS = [
     'oauth2_provider',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-
 ]
 
 MIDDLEWARE = [
@@ -100,9 +96,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'api.custom_middleware.TokenRequestPrintMiddleware',
-
-
-
 ]
 
 
@@ -140,19 +133,10 @@ SIMPLE_JWT = {
     'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
 }
 
-CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:5500",
-    "http://localhost:5500",
-    "http://127.0.0.1:5501",
-    "http://localhost:5501",
-]
-
-CORS_ORIGIN_ALLOW_ALL = True 
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
-CORS_ORIGIN_WHITELIST = [
-    'http://127.0.0.1:5500',
-    "http://localhost:5500",
-]
+CORS_ALLOWED_ORIGINS = []
+CORS_ORIGIN_WHITELIST = []
 
 ROOT_URLCONF = 'user_management_api.urls'
 
@@ -247,11 +231,3 @@ AUTHENTICATION_BACKENDS = [
     'oauth2_provider.backends.OAuth2Backend',
 
 ]
-
-# OAuth2 settings for 42
-OAUTH2_CLIENT_ID = 'u-s4t2ud-e59be17633af5d3818953e6314ebf3284657caef2c6580fe5273e86d207ba627'
-OAUTH2_CLIENT_SECRET = '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'
-OAUTH2_REDIRECT_URI = 'http://localhost:60000/api/oauth/callback/'
-OAUTH2_AUTH_URL = 'https://api.intra.42.fr/oauth/authorize'
-OAUTH2_TOKEN_URL = 'https://api.intra.42.fr/oauth/token'
-OAUTH2_API_BASE_URL = 'https://api.intra.42.fr/v2/'
